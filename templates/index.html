@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Прогноз погоды для маршрута</title>
+</head>
+<body>
+    <h1>Прогноз погоды на маршруте</h1>
+    {% if error_message %}
+        <p style="color: red;">{{ error_message }}</p>
+    {% endif %}
+    <form method="POST">
+        <label for="start_location">Начальная точка:</label>
+        <input type="text" id="start_location" name="start_location" required><br><br>
+        <label for="end_location">Конечная точка:</label>
+        <input type="text" id="end_location" name="end_location" required><br><br>
+        <input type="submit" value="Получить прогноз">
+    </form>
+
+    {% if weather_condition %}
+        <h2>Прогноз:</h2>
+        <h3>{{ weather_condition.start.location }}:</h3>
+        <p>Погода: {{ weather_condition.start.condition }}</p>
+        <p>Подробности: {{ weather_condition.start.details | tojson }}</p>
+
+        <h3>{{ weather_condition.end.location }}:</h3>
+        <p>Погода: {{ weather_condition.end.condition }}</p>
+        <p>Подробности: {{ weather_condition.end.details | tojson }}</p>
+    {% endif %}
+
+    {% if overall_condition %}
+        <h2>Итог: {{ overall_condition }}</h2>
+    {% endif %}
+</body>
+</html>
