@@ -2,8 +2,7 @@ import requests
 import json
 from flask import Flask, render_template, request, jsonify
 
-#API_KEY = "hipMbZ8XD03CZM2O9xCunVPnR0XmpUgW"
-API_KEY = "4WAA2GxyrhsEMEhTEsXivtQEf8JldAwy"
+API_KEY = "hipMbZ8XD03CZM2O9xCunVPnR0XmpUgW"
 
 def get_weather_data(latitude, longitude):
     url = "http://dataservice.accuweather.com/locations/v1/cities/geoposition/search"
@@ -55,6 +54,9 @@ def index():
             start_location = request.form['start_location']
             end_location = request.form['end_location']
 
+            if start_location is None or end_location is None:
+                raise ValueError("Не удалось получить координаты.")
+
             start_latitude, start_longitude = get_coordinates(start_location)
             end_latitude, end_longitude = get_coordinates(end_location)
             if start_latitude is None or start_longitude is None or end_latitude is None or end_longitude is None:
@@ -62,8 +64,13 @@ def index():
 
             start_weather = get_weather_data(start_latitude, start_longitude)
             end_weather = get_weather_data(end_latitude, end_longitude)
-            if start_weather is None or end_weather is None:
-                raise ValueError("Не удалось получить данные о погоде.")
+
+            if start_weather is None:
+                raise ValueError(
+                    f"Ошибка получения данных о погоде для '{start_location}'. Возможно, проблема с API или сетью.")
+            if end_weather is None:
+                raise ValueError(
+                    f"Ошибка получения данных о погоде для '{end_location}'. Возможно, проблема с API или сетью.")
 
             start_condition = check_bad_weather(start_weather['Temperature'], start_weather['Wind speed'], start_weather['Probability of precipitation'])
             end_condition = check_bad_weather(end_weather['Temperature'], end_weather['Wind speed'], end_weather['Probability of precipitation'])
