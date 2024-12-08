@@ -23,7 +23,7 @@ def get_weather_data(latitude, longitude):
         return {
             "temperature": round((int(current_conditions_data['Temperature']['Value'])-32)*5/9, 1),
             "humidity": current_conditions_data['RelativeHumidity'],
-            "wind_speed": round(int(current_conditions_data['Wind']['Speed']['Value'])/2.237, 2),
+            "wind_speed": round(int(current_conditions_data['Wind']['Speed']['Value'])/1.609, 2),
             "probability_of_precipitation": current_conditions_data['PrecipitationProbability']
         }
 
@@ -34,9 +34,22 @@ def get_weather_data(latitude, longitude):
         print(f"Ошибка обработки данных JSON: {e}")
         return None
 
+def check_bad_weather(temperature, wind_speed, precipitation_probability):
+    if temperature < 0 or temperature > 35 or wind_speed > 50 or precipitation_probability > 70:
+        return "bad"
+    else:
+        return "good"
+
 latitude = 55.7687
 longitude = 37.5888
 weather_data = get_weather_data(latitude, longitude)
 
 if weather_data:
     print(json.dumps(weather_data, indent=4))
+
+print(check_bad_weather(-5, 10, 30))  # bad - низкая температура
+print(check_bad_weather(40, 10, 30))  # bad - высокая температура
+print(check_bad_weather(20, 60, 30))  # bad - сильный ветер
+print(check_bad_weather(20, 10, 80))  # bad - высокая вероятность осадков
+print(check_bad_weather(20, 10, 30))  # good - нормальные условия
+
