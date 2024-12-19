@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Добавить город</title>
+</head>
+<body>
+    <h1>Добавить новый город</h1>
+
+    <form method="POST">
+        <label for="latitude">Широта:</label>
+        <input type="text" id="latitude" name="latitude" required><br><br>
+
+        <label for="longitude">Долгота:</label>
+        <input type="text" id="longitude" name="longitude" required><br><br>
+
+        <button type="submit">Добавить</button>
+    </form>
+
+    {% if error_message %}
+        <p style="color: red;">{{ error_message }}</p>
+    {% endif %}
+
+    {% if success_message %}
+        <p style="color: green;">{{ success_message }}</p>
+    {% endif %}
+
+    <h2>Список городов:</h2>
+    <ul>
+        {% for city, coords in locations.items() %}
+            <li>{{ city }}: {{ coords[0] }}, {{ coords[1] }}</li>
+        {% endfor %}
+    </ul>
+
+    <a href="/"><button>На главную</button></a>
+
+</body>
+</html>

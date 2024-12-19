@@ -3,6 +3,20 @@ import json
 from flask import Flask, render_template, request, jsonify
 
 API_KEY = "hipMbZ8XD03CZM2O9xCunVPnR0XmpUgW"
+LOCATIONS_FILE = "static/locations.json"
+
+def load_locations():
+    try:
+        with open(LOCATIONS_FILE, "r", encoding="utf-8") as file:
+            return json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+def save_locations(locations):
+    with open(LOCATIONS_FILE, "w", encoding="utf-8") as file:
+        json.dump(locations, file, ensure_ascii=False, indent=4)
+
+locations = load_locations()
 
 def get_weather_data(latitude, longitude):
     url = "http://dataservice.accuweather.com/locations/v1/cities/geoposition/search"
@@ -40,6 +54,28 @@ def check_bad_weather(temperature, wind_speed, precipitation_probability):
         return "bad"
     else:
         return "good"
+
+
+def get_city_name_from_coordinates(latitude, longitude):
+    url = "http://dataservice.accuweather.com/locations/v1/cities/geoposition/search"
+    params = {
+        "apikey": API_KEY,
+        "q": f"{latitude},{longitude}",
+        "language": "ru-ru"
+    }
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
+        city_name = data['ParentCity']['LocalizedName']
+        return city_name
+    except requests.exceptions.RequestException as e:
+        print(f"Ошибка при запросе к API: {e}")
+        return None
+    except (KeyError, IndexError) as e:
+        print(f"Ошибка обработки данных JSON: {e}")
+        return None
 
 app = Flask(__name__)
 
@@ -90,12 +126,36 @@ def index():
 
     return render_template('index.html', weather_condition=weather_condition, error_message=error_message, overall_condition=overall_condition)
 
+@app.route('/add_city', methods=['GET', 'POST'])
+def add_city():
+    error_message = None
+    success_message = None
+
+    if request.method == 'POST':
+        latitude = request.form['latitude']
+        longitude = request.form['longitude']
+
+        if latitude and longitude:
+            try:
+                latitude = float(latitude)
+                longitude = float(longitude)
+
+                city_name = get_city_name_from_coordinates(latitude, longitude)
+
+                if city_name:
+                    locations[city_name] = (latitude, longitude)
+                    save_locations(locations)
+                    success_message = f"Город {city_name} успешно добавлен!"
+                else:
+                    error_message = "Не удалось найти город по данным координатам."
+            except ValueError:
+                error_message = "Ошибка: координаты должны быть числовыми."
+        else:
+            error_message = "Ошибка: все поля должны быть заполнены."
+
+    return render_template('add_city.html', locations=locations, error_message=error_message, success_message=success_message)
+
 def get_coordinates(location_name):
-    locations = {
-        "Москва": (55.7522, 37.6156),
-        "Санкт-Петербург": (59.9375, 30.3086),
-        "Лондон": (51.5074, 0.1278)
-    }
     return locations.get(location_name)
 
 if __name__ == '__main__':
