@@ -132,24 +132,22 @@ def add_city():
     success_message = None
 
     if request.method == 'POST':
+        city_name = request.form['city_name']
         latitude = request.form['latitude']
         longitude = request.form['longitude']
 
-        if latitude and longitude:
+        if city_name and latitude and longitude:
             try:
+                # Проверка корректности координат
                 latitude = float(latitude)
                 longitude = float(longitude)
 
-                city_name = get_city_name_from_coordinates(latitude, longitude)
-
-                if city_name:
-                    locations[city_name] = (latitude, longitude)
-                    save_locations(locations)
-                    success_message = f"Город {city_name} успешно добавлен!"
-                else:
-                    error_message = "Не удалось найти город по данным координатам."
+                # Сохранение города в словарь
+                locations[city_name] = [latitude, longitude]
+                save_locations(locations)  # Сохранение в файл
+                success_message = f"Город {city_name} успешно добавлен!"
             except ValueError:
-                error_message = "Ошибка: координаты должны быть числовыми."
+                error_message = "Ошибка: широта и долгота должны быть числовыми."
         else:
             error_message = "Ошибка: все поля должны быть заполнены."
 
